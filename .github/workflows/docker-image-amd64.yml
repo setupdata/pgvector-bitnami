@@ -49,8 +49,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          build-args: 
-            - PG_MAJOR=16
+          build-args: |
+            PG_MAJOR=16
           tags: ${{ steps.pg16.outputs.tags }}
           labels: ${{ steps.pg16.outputs.labels }}
           push: true
