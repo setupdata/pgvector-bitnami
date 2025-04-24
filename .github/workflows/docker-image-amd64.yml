@@ -1,0 +1,67 @@
+name: Publish Docker images (amd64)
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'reason'
+        required: false
+
+jobs:
+  push_to_registries:
+    name: Push Docker images to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- Metadata for pgvector-bitnami image (apps/api) ---
+      - name: Extract metadata for pgvector-bitnami 16
+        id: pg16
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/pgvector-bitnami
+          tags: |
+            type=raw,value=pg16
+
+      # --- Metadata for pgvector-bitnami image (apps/api) ---
+      - name: Extract metadata for pgvector-bitnami 17
+        id: pg17
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/pgvector-bitnami
+          tags: |
+            type=raw,value=pg17
+
+      # --- Build and push pgvector-bitnami image ---
+      - name: Build and push pgvector-bitnami image 16
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: 
+            - PG_MAJOR=16
+          tags: ${{ steps.pg16.outputs.tags }}
+          labels: ${{ steps.pg16.outputs.labels }}
+          push: true
+
+      # --- Build and push pgvector-bitnami image ---
+      - name: Build and push pgvector-bitnami image 17
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          build-args: 
+            - PG_MAJOR=17
+          tags: ${{ steps.pg17.outputs.tags }}
+          labels: ${{ steps.pg17.outputs.labels }}
+          push: true
